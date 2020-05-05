@@ -20,9 +20,14 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
 }
+
+Rectangle.prototype.getArea = function fn() {
+  return this.width * this.height;
+};
 
 
 /**
@@ -35,8 +40,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +56,8 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  return Object.assign(new proto.constructor(), JSON.parse(json));
 }
 
 
@@ -110,33 +115,118 @@ function fromJSON(/* proto, json */) {
  *  For more examples see unit tests.
  */
 
+class СssBuilder {
+  constructor() {
+    this.elemStr = '';
+    this.idStr = '';
+    this.classArr = [];
+    this.attrsArr = [];
+    this.pseudoClassArr = [];
+    this.pseudoElementStr = '';
+    this.sequence = 0;
+  }
+
+  element(value) {
+    this.checkSequence(1);
+    this.sequence = 1;
+    if (this.elemStr) throw Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    this.elemStr += value;
+    return this;
+  }
+
+  id(value) {
+    this.checkSequence(2);
+    this.sequence = 2;
+    if (this.idStr) throw Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    this.idStr += `#${value}`;
+    return this;
+  }
+
+  class(value) {
+    this.checkSequence(3);
+    this.sequence = 3;
+    this.classArr.push(`.${value}`);
+    return this;
+  }
+
+  attr(value) {
+    this.checkSequence(4);
+    this.sequence = 4;
+    this.attrsArr.push(`[${value}]`);
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.checkSequence(5);
+    this.sequence = 5;
+    this.pseudoClassArr.push(`:${value}`);
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.checkSequence(6);
+    this.sequence = 6;
+    if (this.pseudoElementStr) throw Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    this.pseudoElementStr += `::${value}`;
+    return this;
+  }
+
+  checkSequence(value) {
+    if (this.sequence > value) throw Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+  }
+
+  stringify() {
+    return this.elemStr
+          + this.idStr
+          + this.classArr.join('')
+          + this.attrsArr.join('')
+          + this.pseudoClassArr.join('')
+          + this.pseudoElementStr;
+  }
+}
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    const cssBuilder = this.instanse(this);
+    return cssBuilder.element(value);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const cssBuilder = this.instanse(this);
+    return cssBuilder.id(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const cssBuilder = this.instanse(this);
+    return cssBuilder.class(value);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const cssBuilder = this.instanse(this);
+    return cssBuilder.attr(value);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const cssBuilder = this.instanse(this);
+    return cssBuilder.pseudoClass(value);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const cssBuilder = this.instanse(this);
+    return cssBuilder.pseudoElement(value);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    this.str = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return this;
+  },
+
+  instanse(instanse) {
+    return instanse instanceof СssBuilder ? instanse : new СssBuilder();
+  },
+
+  stringify() {
+    return this.str ? this.str : this.stringify();
   },
 };
 
